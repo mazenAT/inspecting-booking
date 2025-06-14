@@ -1,60 +1,183 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Inspection Booking System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A Laravel-based API for managing property inspection bookings, team availability, and tenant management.
 
-## About Laravel
+## Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- User Authentication and Authorization
+- Tenant Management
+- Team Management with Availability Scheduling
+- Booking System with Conflict Prevention
+- API Resources for Consistent Responses
+- Form Request Validation
+- Comprehensive Error Handling
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Requirements
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- PHP >= 8.1
+- Composer
+- MySQL >= 8.0
+- Node.js & NPM (for frontend development)
 
-## Learning Laravel
+## Installation
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd inspection-booking
+```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+2. Install PHP dependencies:
+```bash
+composer install
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+3. Create environment file:
+```bash
+cp .env.example .env
+```
 
-## Laravel Sponsors
+4. Generate application key:
+```bash
+php artisan key:generate
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+5. Configure your database in `.env`:
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=inspection_booking
+DB_USERNAME=your_username
+DB_PASSWORD=your_password
+```
 
-### Premium Partners
+6. Run database migrations:
+```bash
+php artisan migrate
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+7. (Optional) Seed the database with sample data:
+```bash
+php artisan db:seed
+```
+
+8. Start the development server:
+```bash
+php artisan serve
+```
+
+## API Documentation
+
+### Authentication Endpoints
+
+- `POST /api/auth/register` - Register a new user
+- `POST /api/auth/login` - Login user
+- `POST /api/auth/logout` - Logout user
+
+### Tenant Endpoints
+
+- `GET /api/tenants` - List all tenants
+- `POST /api/tenants` - Create a new tenant
+- `GET /api/tenants/{id}` - Get tenant details
+- `PUT /api/tenants/{id}` - Update tenant
+- `DELETE /api/tenants/{id}` - Delete tenant
+- `GET /api/tenants/active` - Get active tenants
+
+### Team Endpoints
+
+- `GET /api/teams` - List all teams
+- `POST /api/teams` - Create a new team
+- `GET /api/teams/{id}` - Get team details
+- `PUT /api/teams/{id}` - Update team
+- `DELETE /api/teams/{id}` - Delete team
+- `GET /api/teams/active` - Get active teams
+- `GET /api/teams/{id}/availability` - Get team availability
+- `POST /api/teams/{id}/availability` - Set team availability
+
+### Booking Endpoints
+
+- `GET /api/bookings` - List all bookings
+- `POST /api/bookings` - Create a new booking
+- `GET /api/bookings/{id}` - Get booking details
+- `PUT /api/bookings/{id}` - Update booking
+- `DELETE /api/bookings/{id}` - Delete booking
+- `GET /api/bookings/tenant/{id}` - Get tenant's bookings
+- `GET /api/bookings/team/{id}` - Get team's bookings
+- `GET /api/bookings/upcoming/{tenant_id}` - Get upcoming bookings
+
+## Project Structure
+
+```
+inspection-booking/
+├── app/
+│   ├── Modules/
+│   │   ├── Auth/
+│   │   ├── Bookings/
+│   │   ├── Teams/
+│   │   └── Tenants/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   ├── Middleware/
+│   │   └── Requests/
+│   └── Exceptions/
+├── config/
+├── database/
+│   ├── migrations/
+│   └── seeders/
+├── routes/
+│   └── api.php
+└── tests/
+```
+
+## Error Handling
+
+The API uses consistent error responses:
+
+```json
+{
+    "message": "Error message",
+    "errors": {
+        "field": ["Error details"]
+    }
+}
+```
+
+Common HTTP Status Codes:
+- 200: Success
+- 201: Created
+- 400: Bad Request
+- 401: Unauthorized
+- 403: Forbidden
+- 404: Not Found
+- 422: Validation Error
+- 500: Server Error
+
+## Development
+
+1. Create a new branch for your feature:
+```bash
+git checkout -b feature/your-feature-name
+```
+
+2. Make your changes and commit:
+```bash
+git add .
+git commit -m "Description of changes"
+```
+
+3. Push to your branch:
+```bash
+git push origin feature/your-feature-name
+```
 
 ## Contributing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a new Pull Request
 
 ## License
 

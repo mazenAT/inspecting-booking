@@ -4,46 +4,35 @@ namespace App\Modules\Tenants\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Tenants\Models\Tenant;
+use App\Modules\Tenants\Requests\StoreTenantRequest;
+use App\Modules\Tenants\Resources\TenantResource;
 use Illuminate\Http\Request;
 
 class TenantController extends Controller
 {
     public function index()
     {
-        $tenants = Tenant::all();
-        return response()->json($tenants);
+        $tenants = Tenant::with('bookings')->get();
+        return TenantResource::collection($tenants);
     }
 
     public function show(int $id)
     {
-        $tenant = Tenant::findOrFail($id);
-        return response()->json($tenant);
+        $tenant = Tenant::with('bookings')->findOrFail($id);
+        return new TenantResource($tenant);
     }
 
-    public function store(Request $request)
+    public function store(StoreTenantRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'is_active' => 'boolean'
-        ]);
-
-        $tenant = Tenant::create($request->all());
-        return response()->json($tenant, 201);
+        $tenant = Tenant::create($request->validated());
+        return new TenantResource($tenant);
     }
 
     public function update(Request $request, int $id)
     {
         $tenant = Tenant::findOrFail($id);
-
-        $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'description' => 'nullable|string',
-            'is_active' => 'boolean'
-        ]);
-
         $tenant->update($request->all());
-        return response()->json($tenant);
+        return new TenantResource($tenant);
     }
 
     public function destroy(int $id)
@@ -51,6 +40,14 @@ class TenantController extends Controller
         $tenant = Tenant::findOrFail($id);
         $tenant->delete();
         return response()->json(null, 204);
+    }
+
+    public function getActiveTenants()
+    {
+        $tenants = Tenant::where('is_active', true)
+            ->with('bookings')
+            ->get();
+        return TenantResource::collection($tenants);
     }
 
     public function getTeams(int $id)

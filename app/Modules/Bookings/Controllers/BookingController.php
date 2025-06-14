@@ -4,6 +4,8 @@ namespace App\Modules\Bookings\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Bookings\Models\Booking;
+use App\Modules\Bookings\Requests\StoreBookingRequest;
+use App\Modules\Bookings\Resources\BookingResource;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -12,28 +14,17 @@ class BookingController extends Controller
     public function index()
     {
         $bookings = Booking::all();
-        return response()->json($bookings);
+        return BookingResource::collection($bookings);
     }
 
     public function show(int $id)
     {
         $booking = Booking::findOrFail($id);
-        return response()->json($booking);
+        return new BookingResource($booking);
     }
 
-    public function store(Request $request)
+    public function store(StoreBookingRequest $request)
     {
-        $request->validate([
-            'tenant_id' => 'required|exists:tenants,id',
-            'team_id' => 'required|exists:teams,id',
-            'user_id' => 'required|exists:users,id',
-            'date' => 'required|date',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
-            'status' => 'required|in:pending,confirmed,cancelled,completed',
-            'notes' => 'nullable|string'
-        ]);
-
         // Check if the time slot is available
         $team = \App\Modules\Teams\Models\Team::findOrFail($request->team_id);
         $date = Carbon::parse($request->date);
@@ -71,24 +62,15 @@ class BookingController extends Controller
             return response()->json(['message' => 'Time slot is already booked'], 400);
         }
 
-        $booking = Booking::create($request->all());
-        return response()->json($booking, 201);
+        $booking = Booking::create($request->validated());
+        return new BookingResource($booking);
     }
 
     public function update(Request $request, int $id)
     {
         $booking = Booking::findOrFail($id);
-
-        $request->validate([
-            'date' => 'sometimes|date',
-            'start_time' => 'sometimes|date_format:H:i',
-            'end_time' => 'sometimes|date_format:H:i|after:start_time',
-            'status' => 'sometimes|in:pending,confirmed,cancelled,completed',
-            'notes' => 'nullable|string'
-        ]);
-
         $booking->update($request->all());
-        return response()->json($booking);
+        return new BookingResource($booking);
     }
 
     public function destroy(int $id)
@@ -101,19 +83,19 @@ class BookingController extends Controller
     public function getByTenant(int $tenantId)
     {
         $bookings = Booking::where('tenant_id', $tenantId)->get();
-        return response()->json($bookings);
+        return BookingResource::collection($bookings);
     }
 
     public function getByTeam(int $teamId)
     {
         $bookings = Booking::where('team_id', $teamId)->get();
-        return response()->json($bookings);
+        return BookingResource::collection($bookings);
     }
 
     public function getByUser(int $userId)
     {
         $bookings = Booking::where('user_id', $userId)->get();
-        return response()->json($bookings);
+        return BookingResource::collection($bookings);
     }
 
     public function updateStatus(Request $request, int $id)
@@ -126,7 +108,7 @@ class BookingController extends Controller
         $booking->status = $request->status;
         $booking->save();
 
-        return response()->json($booking);
+        return new BookingResource($booking);
     }
 
     public function getUpcomingBookings(Request $request, int $tenantId)
@@ -146,6 +128,6 @@ class BookingController extends Controller
             ->orderBy('start_time')
             ->get();
 
-        return response()->json($bookings);
+        return BookingResource::collection($bookings);
     }
 } 

@@ -4,6 +4,8 @@ namespace App\Modules\Teams\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Teams\Models\Team;
+use App\Modules\Teams\Requests\StoreTeamRequest;
+use App\Modules\Teams\Resources\TeamResource;
 use App\Modules\Availability\Models\TeamAvailability;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -12,41 +14,27 @@ class TeamController extends Controller
 {
     public function index()
     {
-        $teams = Team::all();
-        return response()->json($teams);
+        $teams = Team::with('availability')->get();
+        return TeamResource::collection($teams);
     }
 
     public function show(int $id)
     {
-        $team = Team::findOrFail($id);
-        return response()->json($team);
+        $team = Team::with('availability')->findOrFail($id);
+        return new TeamResource($team);
     }
 
-    public function store(Request $request)
+    public function store(StoreTeamRequest $request)
     {
-        $request->validate([
-            'tenant_id' => 'required|exists:tenants,id',
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'is_active' => 'boolean'
-        ]);
-
-        $team = Team::create($request->all());
-        return response()->json($team, 201);
+        $team = Team::create($request->validated());
+        return new TeamResource($team);
     }
 
     public function update(Request $request, int $id)
     {
         $team = Team::findOrFail($id);
-
-        $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'description' => 'nullable|string',
-            'is_active' => 'boolean'
-        ]);
-
         $team->update($request->all());
-        return response()->json($team);
+        return new TeamResource($team);
     }
 
     public function destroy(int $id)
@@ -150,5 +138,13 @@ class TeamController extends Controller
         }
 
         return response()->json(['slots' => $slots]);
+    }
+
+    public function getActiveTeams()
+    {
+        $teams = Team::where('is_active', true)
+            ->with('availability')
+            ->get();
+        return TeamResource::collection($teams);
     }
 } 
